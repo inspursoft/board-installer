@@ -1,0 +1,6 @@
+---
+- name: start flannel.yml
+  shell: kubectl create -f /var/lib/yaml/flannel.yml
+  ignore_errors: yes
+
+  

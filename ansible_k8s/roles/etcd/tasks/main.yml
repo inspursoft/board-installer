@@ -1,0 +1,29 @@
+---
+- name: install etcd
+  yum: name=etcd state=latest
+- name: etcd.conf
+  template: src=etcd.conf dest=/etc/etcd/etcd.conf
+
+- name: /usr/lib/systemd/system/etcd.service
+  template: src=etcd.service dest=/usr/lib/systemd/system/etcd.service
+
+- name: Enable etcd
+  service: name=etcd enabled=yes
+
+- name: Start etcd
+  service: name=etcd state=started
+  register: started_etcd
+- copy:
+    src: '{{role_path}}/files/etcd.sh'
+    dest: /home/etcd.sh
+    owner: root
+    group: root
+    mode: 755
+
+- name: etcdctl mk
+  shell: /home/etcd.sh
+
+#- name: Enable etcd
+ # service: name=etcd enabled=etcd state=started
+
+  

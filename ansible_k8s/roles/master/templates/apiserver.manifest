@@ -1,0 +1,63 @@
+{
+	"kind": "Pod",
+	"apiVersion": "v1",
+	"metadata": {
+		"name": "kube-apiserver"
+	},
+	"spec": {
+		"hostNetwork": true,
+		"containers": [
+		{
+			"name": "kube-apiserver",
+			"image": "gcr.io/google_containers/kube-apiserver:v1.8.8",
+			"command": [
+				"kube-apiserver",
+				"--logtostderr=true",
+				"--v=0",
+				"--etcd-servers=http://{{master_ip_address}}:2379",
+				"--insecure-bind-address=0.0.0.0",
+				"--allow-privileged=true",
+				"--service-cluster-ip-range=10.254.0.0/16",
+				"--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota"
+			],
+			"ports": [
+				{
+					"name": "https",
+					"hostPort": 6443,
+					"containerPort": 6443
+				},
+				{
+					"name": "local",
+					"hostPort": 8080,
+					"containerPort": 8080
+				}
+			],
+			"volumeMounts": [
+				{
+					"name": "etckube",
+					"mountPath": "/etc/kubernetes",
+					"readOnly": true
+				}
+			],
+			"livenessProbe": {
+				"httpGet": {
+					"scheme": "HTTP",
+					"host": "127.0.0.1",
+					"port": 8080,
+					"path": "/healthz"
+				},
+				"initialDelaySeconds": 15,
+				"timeoutSeconds": 15
+			}
+		}
+		],
+		"volumes": [
+		{
+			"name": "etckube",
+			"hostPath": {
+				"path": "/etc/kubernetes"
+			}
+		}
+		]
+	}
+}

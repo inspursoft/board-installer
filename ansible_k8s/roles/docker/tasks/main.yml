@@ -1,0 +1,20 @@
+---
+- name: install docker-ce
+  yum: name=docker-ce state=latest
+
+#- name: config
+#  template: src=config dest=/etc/kubernetes/config
+
+
+- name: Enable docker
+  service: name=docker enabled=yes state=started
+
+
+#- name: Enable kube-apiserver
+#  service: name=kube-apiserver enabled=yes
+
+#- name: Start kube-apiserver
+#  service: name=kube-apiserver state=started
+#  register: started_kube-apiserver
+
+  

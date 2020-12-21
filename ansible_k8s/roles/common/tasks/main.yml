@@ -1,0 +1,22 @@
+---
+- name: Set IP address variables
+  set_fact:
+    master_ip_address: "{{ hostvars[groups['masters'][0]]['ansible_default_ipv4']['address'] }}"
+    node_ip_address: "{{ hostvars[groups['nodes'][0]]['ansible_default_ipv4']['address'] }}"
+    etcd_ip_address: "{{ hostvars[groups['etcd'][0]]['ansible_default_ipv4']['address'] }}"
+    board_ip_address: "{{ hostvars[groups['board'][0]]['ansible_default_ipv4']['address'] }}"
+    nsf_server_ip_address: "{{ hostvars[groups['nfs-server'][0]]['ansible_default_ipv4']['address'] }}"
+- copy: 
+    src: "{{role_path}}/files/k8s.repo"
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+- copy:
+    src: "{{role_path}}/files/selinuxConfig"
+    dest: /etc/selinux/config
+- name: stop the firewall
+  shell: systemctl stop firewalld.service
+  ignore_errors: yes
+- name: set enforce 0
+  shell: set enforce 0
+  ignore_errors: yes

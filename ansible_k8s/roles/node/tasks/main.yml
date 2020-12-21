@@ -1,0 +1,88 @@
+---
+
+- name: create /etc/kubernetes/{manifests,certs}
+  shell: mkdir -p /etc/kubernetes/{manifests,certs}
+  ignore_errors: yes
+- name: create /var/lib/k8s/images
+  shell: mkdir -p /var/lib/k8s/images
+- name: create /var/lib/yaml
+  shell: mkdir -p /var/lib/yaml
+- name: create /opt/cni/bin
+  shell: mkdir -p /opt/cni/bin
+- name: create /var/lib/kubelet
+  shell: mkdir -p /var/lib/kubelet
+- name: create /var/lib/k8sconfig
+  shell: mkdir -p /var/lib/k8sconfig
+- name: setenforce 
+  shell: setenforce 0
+  ignore_errors: yes
+
+- name: copy pause images to images
+  copy: src={{role_path}}/../../pre-env/master_images/{{item}} dest=/var/lib/k8s/images
+  with_items:
+    - "pause-amd64-3.0.tar"
+    - "flannel-v0.8.0-amd64.tar"
+    - "kube-proxy.tar"
+    - "snap-v23.tar"
+    - "fluentd-elasticsearch-v2.0.2.tar"
+
+- name: copy images to images
+  copy: src={{role_path}}/../../pre-env/bin/{{item}} dest=/usr/bin mode=755
+  with_items:
+    - "kubelet"
+    - "kubectl"
+- name: copy files to /opt/cni/bin
+  copy: src={{role_path}}/../../pre-env/bin/{{item}} dest=/opt/cni/bin mode=755
+  with_items:
+    - "loopback"
+    - "host-local"
+    - "bridge"
+    - "flannel"
+    - "portmap"
+- name: copy kube-proxy.yml 
+  template: src={{role_path}}/templates/{{item}} dest=/var/lib/yaml
+  with_items:
+    - "kube-proxy.yaml"
+
+- name: modify docker config file
+  shell: sed -i '/ExecStart/s/$/ --iptables=false/' /usr/lib/systemd/system/docker.service
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+
+- name: restart docker
+  service: name=docker enabled=yes state=restarted
+
+- name: copy kubelet.service kube-proxy.service /usr/lib/systemd/system
+  template: src={{role_path}}/templates/{{item}} dest=/usr/lib/systemd/system mode=755
+  with_items:
+    - "kubelet.service"
+- name: copy kubeletconfig.yaml and kubeproxyconfig.yaml to /etc/kubernetes
+  template: src={{role_path}}/templates/{{item}} dest=/etc/kubernetes
+  with_items:
+    - "kubeletconfig.yaml"
+    - "kubeproxyconfig.yaml"
+- name: copy config file hostoverwrite 
+  template: src={{role_path}}/templates/{{item}} dest=/var/lib/k8sconfig
+  with_items:
+    - "hostoverwrite"
+
+- name: copy startup file
+  copy: src={{role_path}}/../../files/k8s-loadimages.service dest=/usr/lib/systemd/system
+- name: copy startup script
+  copy: src={{role_path}}/../../files/k8s-loadimages dest=/usr/bin mode=755
+
+- name: systemctl start k8s-loadimages
+  shell: systemctl start k8s-loadimages
+- name: systemctl start kubelet
+  shell: systemctl start kubelet
+
+- name: ln -sv /usr/lib/systemd/system/kubelet.service /etc/systemd/system/multi-user.target.wants/kubelet.service
+  shell: ln -sv /usr/lib/systemd/system/kubelet.service /etc/systemd/system/multi-user.target.wants/kubelet.service
+  ignore_errors: yes 
+- name: ln -sv /usr/lib/systemd/system/kube-proxy.service /etc/systemd/system/multi-user.target.wants/kube-proxy.service
+  shell: ln -sv /usr/lib/systemd/system/kube-proxy.service /etc/systemd/system/multi-user.target.wants/kube-proxy.service
+  ignore_errors: yes 
+- name: ln -sv /usr/lib/systemd/system/k8s-loadimages.service /etc/systemd/system/multi-user.target.wants/k8s-loadimages.service
+  shell: ln -sv /usr/lib/systemd/system/k8s-loadimages.service /etc/systemd/system/multi-user.target.wants/k8s-loadimages.service
+  ignore_errors: yes 

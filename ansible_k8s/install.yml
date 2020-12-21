@@ -1,0 +1,21 @@
+---
+- hosts: all
+  roles:
+    - repo
+    - common
+- hosts: masters
+  roles:
+    - docker
+    - master
+    - flannel
+    - registry
+- hosts: nodes
+  roles:
+    - docker
+    - node
+- hosts: nfs-server
+  roles:
+    - nfs-server
+ #   - docker
+  #  - nfs-client
+

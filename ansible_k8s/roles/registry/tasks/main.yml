@@ -1,0 +1,15 @@
+---
+- copy:
+    src: "{{role_path}}/files/registry"
+    dest: /home
+    owner: root
+    group: root
+    mode: 755
+
+- name: load image
+  shell: docker load -i /home/registry
+- name: run registry
+  shell: docker run -d -p 5000:5000 -v /data/registry:/tmp/registry -e REGISTRY_STORAGE_DELETE_ENABLED=true registry
+
+
+  
