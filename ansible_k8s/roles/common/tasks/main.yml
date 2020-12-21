@@ -1,11 +1,15 @@
 ---
+- name: create save package dir
+  file: path={{install_package}} state=directory
 - copy: 
     src: "{{role_path}}/files/docker-ce.repo"
     dest: /etc/yum.repos.d/
     owner: root
     group: root
+  when: ansible_os_family == "RedHat"
 - name: copy nfs-chrony.repo
   copy: src={{role_path}}/files/nfs-chrony.repo dest=/etc/yum.repos.d 
+  when: ansible_os_family == "RedHat"
 
 - copy:
     src: "{{role_path}}/files/selinuxConfig"
@@ -33,6 +37,15 @@
   with_items:
     - "docker-ce"
     - "nfs-chrony"
+  when: ansible_os_family == "RedHat"
+
+- name: copy docker deb package
+  copy: src={{role_path}}/../../pre-env/{{item}} dest={{install_package}}/
+  with_items:
+    - "debian"
+    - "chrony-debian"
+    - "nfs-debian"
+  when: ansible_os_family == "Debian"
 
 - name: modprobe br_netfilter
   shell: modprobe br_netfilter

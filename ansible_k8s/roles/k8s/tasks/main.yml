@@ -2,17 +2,23 @@
 
 - name: create directory to save rpm package
   shell: mkdir -p /tmp/rpm
-- name: copy docker-ce rpm package
-  copy: src={{role_path}}/../../pre-env/k8s dest=/tmp/rpm
+  when: ansible_os_family == "RedHat"
 
-- copy:
-    src: "{{role_path}}/files/k8s.repo"
-    dest: /etc/yum.repos.d/
-    owner: root
-    group: root
+- name: copy docker-ce rpm package
+  copy: src={{role_path}}/../../pre-env/k8s-{{kubernetesVersion}} dest=/tmp/rpm
+  when: ansible_os_family == "RedHat"
+
+- name: mv /tmp/rpm/k8s-{{kubernetesVersion}} to /tmp/rpm/k8s
+  command: mv /tmp/rpm/k8s-{{kubernetesVersion}} /tmp/rpm/k8s
+  when: ansible_os_family == "RedHat"
+
+- name: copy repo k8s.repo file to /etc/yum.repos.d
+  copy: src={{role_path}}/files/k8s.repo dest=/etc/yum.repos.d/ owner=root group=root
+  when: ansible_os_family == "RedHat"
 
 - name: install kubelet kubeadm kubectl
   yum: name=kubelet,kubeadm,kubectl state=latest
+  when: ansible_os_family == "RedHat"
 
 - name: systemctl daemon-reload
   shell: systemctl daemon-reload

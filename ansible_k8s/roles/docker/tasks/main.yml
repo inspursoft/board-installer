@@ -1,6 +1,11 @@
 ---
 - name: install docker-ce
   yum: name=docker-ce state=latest
+  when: ansible_os_family == "RedHat"
+
+- name: install docker and k8s
+  shell: dpkg -i {{install_package}}/debian/*.deb
+  when: ansible_os_family == "Debian"
 
 - name: start docker
   service: name=docker enabled=yes state=started
@@ -8,9 +13,12 @@
 - name: config daemon.json file
   template: src={{role_path}}/templates/daemon.json dest=/etc/docker/daemon.json
 
+- name: restart docker
+  service: name=docker enabled=yes state=stopped
+
 - name: systemctl daemon-reload
   shell: systemctl daemon-reload
 
 - name: restart docker
-  service: name=docker enabled=yes state=restarted
+  service: name=docker enabled=yes state=started
 

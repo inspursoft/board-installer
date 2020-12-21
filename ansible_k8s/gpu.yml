@@ -1,0 +1,10 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+- hosts: gpu
+  roles:
+    - {role: gpu}
+    - {role: gpu-image}
+    - {role: gpu-image}
+

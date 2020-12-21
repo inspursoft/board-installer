@@ -3,4 +3,7 @@
   roles:
     - reset_k8s
     - uninstall
-
+    - uninstall_cloudcore
+- hosts: edges
+  roles: 
+    - {role: uninstall_edgecore, tags: edge} 

@@ -1,0 +1,24 @@
+---
+
+- name: create directory to save rpm package
+  shell: mkdir -p /tmp/deb
+
+- name: copy docker-ce rpm package
+  copy: src={{role_path}}/../../pre-env/{{itme}} dest=/tmp/deb
+  with_item:
+    - 'k8s-20.04'
+    - 'docker-arm64'
+- name: dpkg -i /tmp/deb/docker-arm64
+  shell: dpkg -i /tmp/deb/docker-arm64/*.deb
+
+- name: dpkg -i /tmp/deb/k8s-20.04
+  shell: dpkg -i /tmp/deb/k8s-20.04/*.deb
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+
+- name: systemctl start docker && systemctl start docker
+  shell: systemctl start docker && systemctl enable docker
+
+- name: systemctl start kubelet && systemctl start kubelet
+  shell: systemctl start kubelet && systemctl enable kubelet

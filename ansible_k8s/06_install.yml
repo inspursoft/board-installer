@@ -1,0 +1,15 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+
+- hosts: nodes,master
+  roles:
+    - istio.common
+  tags: istio
+- hosts: masters
+  roles:
+    - {role: istio, tags: istio}
+    - {role: heapster}
+

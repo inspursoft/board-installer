@@ -44,83 +44,134 @@ roleRef:
 ---
 kind: ConfigMap
 apiVersion: v1
+metadata:
+  name: fluentd-es-config-v0.2.0
+  namespace: kube-system
 data:
   containers.input.conf: |-
     <source>
-      type tail
+      @id fluentd-containers.log
+      @type tail
       path /var/log/containers/*.log
       pos_file /var/log/es-containers.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%NZ
-      tag kubernetes.*
+      tag raw.kubernetes.*
       read_from_head true
-      format multi_format
-      <pattern>
-        format json
-        time_key time
-        time_format %Y-%m-%dT%H:%M:%S.%NZ
-      </pattern>
-      <pattern>
-        format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
-        time_format %Y-%m-%dT%H:%M:%S.%N%:z
-      </pattern>
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+          time_key time
+          time_format %Y-%m-%dT%H:%M:%S.%NZ
+        </pattern>
+        <pattern>
+          format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+          time_format %Y-%m-%dT%H:%M:%S.%N%:z
+        </pattern>
+      </parse>
     </source>
-  output.conf: |-
+
+    # Detect exceptions in the log output and forward them as one log entry.
+    <match raw.kubernetes.**>
+      @id raw.kubernetes
+      @type detect_exceptions
+      remove_tag_prefix raw
+      message log
+      stream stream
+      multiline_flush_interval 5
+      max_bytes 500000
+      max_lines 1000
+    </match>
+
+    # Concatenate multi-line logs
+    <filter **>
+      @id filter_concat
+      @type concat
+      key message
+      multiline_end_regexp /\n$/
+      separator ""
+    </filter>
+
     # Enriches records with Kubernetes metadata
     <filter kubernetes.**>
-      type kubernetes_metadata
+      @id filter_kubernetes_metadata
+      @type kubernetes_metadata
       verify_ssl false
     </filter>
 
+    # Fixes json fields in Elasticsearch
+    <filter kubernetes.**>
+      @id filter_parser
+      @type parser
+      key_name log
+      reserve_data true
+      remove_key_name_field true
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+        </pattern>
+        <pattern>
+          format none
+        </pattern>
+      </parse>
+    </filter>
+  output.conf: |-
     <match **>
-       type elasticsearch
-       log_level info
-       include_tag_key true
-       host {{board_ip_address}}
-       port 9200
-       logstash_format true
-       # Set the chunk limits.
-       buffer_chunk_limit 2M
-       buffer_queue_limit 8
-       flush_interval 5s
-       # Never wait longer than 5 minutes between retries.
-       max_retry_wait 30
-       # Disable the limit on the number of retries (retry forever).
-       disable_retry_limit
-       # Use multiple threads for processing.
-       num_threads 2
+      @id elasticsearch
+      @type elasticsearch
+      @log_level info
+      type_name doc
+      include_tag_key true
+      host {{board_ip_address}}
+      port 9200
+      user elastic
+      password root123
+      logstash_format true
+      request_timeout 30s
+      time_key_format %Y-%m-%dT%H:%M:%S.%N%z
+      <buffer>
+        @type file
+        path /var/log/fluentd-buffers/kubernetes.system.buffer
+        flush_mode interval
+        retry_type exponential_backoff
+        flush_thread_count 2
+        flush_interval 5s
+        retry_forever
+        retry_max_interval 30
+        chunk_limit_size 2M
+        queue_limit_length 8
+        overflow_action block
+      </buffer>
     </match>
-metadata:
-  name: fluentd-es-config-v0.1.1
-  namespace: kube-system
 
 ---
-
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: fluentd-es
+  name: fluentd-es-v2.7.0
   namespace: kube-system
 spec:
   selector:
     matchLabels:
       k8s-app: fluentd-es
-      version: v2.0.2
+      version: v2.7.0
   template:
     metadata:
       labels:
         k8s-app: fluentd-es
-        kubernetes.io/cluster-service: "true"
-        version: v2.0.2
+        version: v2.7.0
       # This annotation ensures that fluentd does not get evicted if the node
       # supports critical pod annotation based priority scheme.
       # Note that this does not guarantee admission on the nodes (#40573).
       annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ''
+        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
     spec:
+      priorityClassName: system-node-critical
       serviceAccountName: fluentd-es
       containers:
       - name: fluentd-es
-        image: gcr.io/google-containers/fluentd-elasticsearch:v2.0.2
+        image: quay.io/fluentd_elasticsearch/fluentd:v2.7.0
         env:
         - name: FLUENTD_ARGS
           value: --no-supervisor -q
@@ -136,12 +187,16 @@ spec:
         - name: varlibdockercontainers
           mountPath: {{docker_dir}}/containers
           readOnly: true
-        - name: libsystemddir
-          mountPath: /host/lib
-          readOnly: true
         - name: config-volume
           mountPath: /etc/fluent/config.d
       terminationGracePeriodSeconds: 30
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node.kubernetes.io/unschedulable
       volumes:
       - name: varlog
         hostPath:
@@ -149,10 +204,6 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: {{docker_dir}}/containers
-      # It is needed to copy systemd library to decompress journals
-      - name: libsystemddir
-        hostPath:
-          path: /usr/lib64
       - name: config-volume
         configMap:
-          name: fluentd-es-config-v0.1.1
+          name: fluentd-es-config-v0.2.0

@@ -1,0 +1,12 @@
+---
+
+- name: copy image to localion
+  copy: src={{role_path}}/../../pre-env/images/{{item}} dest={{docker_image_dir}}
+  with_items:
+    - "k8s-images-arm64.tar"
+- name: load image
+  shell: docker load -i {{docker_image_dir}}/{{item}}
+  with_items:
+    - "k8s-images-arm64.tar"
+
+  

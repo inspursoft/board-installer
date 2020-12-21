@@ -1,0 +1,10 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+   
+- hosts: nodes
+  roles:
+    - {role: copy-addnode-cmd}
+

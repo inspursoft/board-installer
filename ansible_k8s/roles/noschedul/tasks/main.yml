@@ -1,0 +1,8 @@
+---
+
+- name: copy shell to /var/lib/yaml
+  copy: src={{role_path}}/files/noschedul_kubeproxy.sh dest=/var/lib/yaml mode=755
+- name: no schedule kube-proxy
+  shell: /var/lib/yaml/noschedul_kubeproxy.sh
+  when: ansible_default_ipv4.address == (master_ip_address)
+

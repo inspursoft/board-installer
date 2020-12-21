@@ -25,31 +25,87 @@
 
 - name: start chronyd
   service: name=chronyd state=restarted
+  when: ansible_os_family == "RedHat"
 - name: start ntpd
   service: name=ntpd state=restarted
+  when: ansible_os_family == "RedHat"
 
 - name: kubeadm init --config k8s-init.yaml
   shell: kubeadm init --config /var/lib/yaml/k8s-init.yaml
-#  shell: kubeadm init --pod-network-cidr=10.253.0.0/16 --image-repository={{registry_ip_address}}:5000/k8simage
+  when: groups.masters|length == 1
+
+- name: kubeadm init --config k8s-init-multimaster.yaml --upload-certs
+  shell: kubeadm init --config /var/lib/yaml/k8s-init-multimaster.yaml --upload-certs
+  when: (master_ip_address) in ansible_all_ipv4_addresses and  groups.masters|length > 1
+
 
 - name: copy kubeletes.sh
   copy: src={{role_path}}/files/kubeletes.sh dest=/root mode=755
 
 - name: /root/kubeletes.sh
   shell: /root/kubeletes.sh
+  when: (master_ip_address) in ansible_all_ipv4_addresses
 
 - name: copy kube-flannel.yml
   template: src={{role_path}}/templates/kube-flannel.yml dest=/var/lib/yaml mode=755
-
-- name: run kubectl apply -f /var/lib/yaml/kube-flannel.yml
-  shell: kubectl apply -f /var/lib/yaml/kube-flannel.yml
+  when: (k8s_network)=='flannel'
 
 - name: kubeadm token create --print-join-command 
   shell: kubeadm token create --print-join-command > /tmp/t.sh
+  when: (master_ip_address) in ansible_all_ipv4_addresses
 
 - name: copy image to localion
   fetch: src=/tmp/t.sh dest=/tmp/ mode=755
+  when: (master_ip_address) in ansible_all_ipv4_addresses
 
 - name: kubectl create namespace library
   shell: kubectl create namespace library
   ignore_errors: yes
+  when: (master_ip_address) in ansible_all_ipv4_addresses
+  
+
+- name: kubeadm init phase upload-certs --upload-certs > join-k8s-master-certificate-key.txt
+  shell: kubeadm init phase upload-certs --upload-certs > /tmp/join-k8s-master-certificate-key.txt
+  when: (master_ip_address) in ansible_all_ipv4_addresses and  groups.masters|length > 1
+
+- name: kubeadm init phase upload-certs --upload-certs > join-k8s-master-certificate-key.txt
+  fetch: src=/tmp/join-k8s-master-certificate-key.txt dest=/tmp
+  when: (master_ip_address) in ansible_all_ipv4_addresses and  groups.masters|length > 1
+
+- name: kubeadm join
+  shell: echo `kubeadm token create --print-join-command` --control-plane --certificate-key `tail -n 1 /tmp/join-k8s-master-certificate-key.txt` --ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests > /tmp/join.sh
+  when: (master_ip_address) in ansible_all_ipv4_addresses and  groups.masters|length > 1
+
+- name: copy join.sh file for join the master
+  fetch: src=/tmp/join.sh dest=/tmp
+  when: (master_ip_address) in ansible_all_ipv4_addresses and  groups.masters|length > 1
+
+
+- name: copy master join.sh image to localion
+  copy: src=/tmp/{{master_ip_address}}/tmp/join.sh dest=/tmp/ mode=755
+  when: ansible_default_ipv4.address!=(master_ip_address) and  groups.masters|length > 1
+
+- name: join the other masters
+  shell: /tmp/join.sh
+  when: ansible_default_ipv4.address != (master_ip_address) and  groups.masters|length > 1
+
+- name: run kubectl apply -f /var/lib/yaml/kube-flannel.yml
+  shell: kubectl apply -f /var/lib/yaml/kube-flannel.yml
+  when: (master_ip_address) in ansible_all_ipv4_addresses and (k8s_network)=='flannel'
+
+- block: 
+  - name: get cidr 
+    shell: grep -nr cluster-cidr /etc/kubernetes/manifests/kube-controller-manager.yaml|cut -d '=' -f 2-3
+    register: cidrs
+  - name: set cidr
+    set_fact: cidr={{ cidrs.stdout }}
+    when: (master_ip_address) in ansible_all_ipv4_addresses and (k8s_network)=='calico'
+  - name: copy calico.yml
+    template: src={{role_path}}/templates/calico.yaml dest=/var/lib/yaml mode=755
+  - name: run kubectl apply -f /var/lib/yaml/calico.yaml
+    shell: kubectl apply -f /var/lib/yaml/calico.yaml
+  when: (master_ip_address) in ansible_all_ipv4_addresses and (k8s_network)=='calico'
+
+- name: /root/kubeletes.sh
+  shell: /root/kubeletes.sh
+  when: ansible_default_ipv4.address != (master_ip_address) and  groups.masters|length > 1 

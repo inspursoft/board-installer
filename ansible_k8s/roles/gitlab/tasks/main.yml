@@ -1,0 +1,54 @@
+---
+- name: gitlab image directroy
+  file: path=/tmp/gitlab state=directory
+
+- name: create /data directory
+  file: path=/data state=directory
+
+- name: copy gitlab.rb to /root
+  template: src={{role_path}}/templates/gitlab.rb dest=/root
+
+- name: copy gitlab.rb to /root
+  template: src={{role_path}}/templates/{{item}} dest=/data
+  with_items:
+    - "board.cfg"
+    - "config.ini"
+
+- name: copy gitlab 
+  copy: src={{role_path}}/../../pre-env/gitlab/{{item}} dest=/tmp/gitlab
+  with_items:
+    - "gitlab.tar.gz"
+    - "gitlab-helper.tar.gz"
+    - "kanino.tar.gz"
+    - "gitlab-runner-helper.tar.gz"
+
+- name: copy gitlab
+  copy: src={{role_path}}/../../pre-env/gitlab/gitlab-runner dest=/usr/bin mode=755
+
+- name: load docker image
+  shell: docker load -i /tmp/gitlab/{{item}}
+  with_items:
+    - "gitlab.tar.gz"
+    - "gitlab-helper.tar.gz"
+    - "kanino.tar.gz"
+    - "gitlab-runner-helper.tar.gz"
+
+- name: push gitlab images
+  shell: docker tag {{item}} {{registry_ip_address}}:5000/{{item}}
+  with_items:
+    - "kaniko-project/executor:dev"
+- name: push image to registry
+  shell: docker push {{registry_ip_address}}:5000/{{item}}
+  with_items:
+    - "kaniko-project/executor:dev"
+
+- name: install gitlab-runner
+  shell: gitlab-runner install --user root
+  ignore_errors: yes
+
+- name: start gitlab-runner
+  shell: gitlab-runner start
+
+- name: start gitlab with gitlabhelper
+  shell: docker run --rm -v /data/config.ini:/app/env/config.ini -v /data/board.cfg:/app/instance/board.cfg gitlab-helper:1.1 
+

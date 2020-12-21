@@ -1,6 +1,6 @@
 ---
 - name: kubeadmin reset
-  shell: yes|kubeadm reset
+  shell: yes|kubeadm reset -f
   ignore_errors: yes
 
 - name: delete rm -rf $HOME/.kube

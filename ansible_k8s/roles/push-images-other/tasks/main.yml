@@ -1,0 +1,22 @@
+---
+
+- name: copy image to localion
+  copy: src={{role_path}}/../../pre-env/images/{{item}} dest={{docker_image_dir}}
+  with_items:
+    - "nginx-arm.tar"
+
+- name: load image
+  shell: docker load -i {{docker_image_dir}}/{{item}}
+  with_items:
+    - "nginx-arm.tar"
+
+- name: push k8s images
+  shell: docker tag {{item}} {{registry_ip_address}}:5000/library/{{item}}
+  with_items:
+    - "nginx:arm"
+
+- name: push image to registry
+  shell: docker push {{registry_ip_address}}:5000/library/{{item}}
+  with_items:
+    - "nginx:arm"
+  

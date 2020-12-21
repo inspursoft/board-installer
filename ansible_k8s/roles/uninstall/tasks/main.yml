@@ -10,6 +10,10 @@
   
 - name: install kubelet kubeadm kubectl docker
   yum: name=kubelet,kubeadm,kubectl,docker-ce,docker-ce-cli state=removed
+  when: ansible_os_family == "RedHat"
+- name: uninstall kubelet kubeadm kubectl docker
+  shell: dpkg -P kubeadm kubectl kubelet kubernetes-cni containerd.io docker-ce docker-ce-cli
+  when: ansible_os_family == "Debian"
 
 - name: rm -rf docker dir
   shell: rm -rf {{docker_dir}}/*
@@ -20,6 +24,9 @@
     - "/etc/docker"
     - "/var/lib/etcd"
     - "/tmp/t.sh"
-#- name: create /var/lib/yaml
-#  shell: mkdir -p /var/lib/yaml
-
+    - "/tmp/rpm"
+    - "/etc/kubernetes/"
+    - "/etc/cni/net.d"
+- name: delete float ip
+  shell: ip addr del {{virt_ip}} dev {{ansible_default_ipv4.alias}} 
+  ignore_errors: yes

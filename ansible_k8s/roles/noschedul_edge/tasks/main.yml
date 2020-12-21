@@ -1,0 +1,16 @@
+---
+
+- name: create /tmp/k8s
+  file: path=/tmp/k8s state=directory
+
+- name: copy noschedule file to /tmp/k8s
+  copy: src="{{role_path}}/files/noshedule.sh" dest=/tmp/k8s mode=755
+
+- name: stop cloudcore
+  shell: /tmp/k8s/noshedule.sh
+  register: edgestatus
+  ignore_errors: yes
+
+- name: msg
+  debug: msg="{{edgestatus.stdout_lines}}"
+

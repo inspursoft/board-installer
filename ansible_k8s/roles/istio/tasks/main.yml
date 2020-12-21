@@ -28,5 +28,6 @@
   shell: kubectl create -f /var/lib/yaml/{{item}}
   with_items:
     - "istio.yaml"
+  when: ansible_default_ipv4.address == (master_ip_address)
   ignore_errors: yes
 

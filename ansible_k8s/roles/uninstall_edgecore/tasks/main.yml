@@ -1,0 +1,36 @@
+---
+- name: stop cloudcore
+  service: name=edgecore state=stopped
+  ignore_errors: yes
+
+- name: stop all the container
+  shell: docker stop $(docker ps|awk '{print $1}')
+  ignore_errors: yes
+
+- name: remove imaages
+  shell: docker rmi -f $(docker images|awk '{print $3}')
+  ignore_errors: yes
+
+- name: arm remove docker
+  shell: dpkg -P docker.io containerd lilibseccomp2 runc
+  when: (ansible_architecture) == "aarch64"
+- name: x86 remove docker
+  yum: name=docker-ce,docker-ce-cli state=removed
+  when: (ansible_architecture) == "x86_64"
+
+- name: rm -rf docker dir
+  shell: rm -rf {{docker_dir}}/*
+- name: rm /etc/docker
+  shell: rm -rf /etc/docker
+
+- name: stop cloudcore
+  service: name=edgecore state=stopped
+  ignore_errors: yes
+
+- name: rm /usr/lib/systemd/system/cloudcore.service
+  file: path={{item}} state=absent 
+  with_items:
+    - "/usr/lib/systemd/system/edgecore.service"
+    - "/etc/kubeedge"
+    - "/var/lib/kubeedge"
+

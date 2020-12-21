@@ -3,36 +3,70 @@
 - name: copy image to localion
   copy: src={{role_path}}/../../pre-env/images/{{item}} dest={{docker_image_dir}}
   with_items:
-    - "k8s-images.tar"
+    - "k8s-images-{{kubernetesVersion}}.tar"
+    - "multi-master-images.tar"
 
 - name: load image
   shell: docker load -i {{docker_image_dir}}/{{item}}
   with_items:
-    - "k8s-images.tar"
+    - "k8s-images-{{kubernetesVersion}}.tar"
+    - "multi-master-images.tar"
 
 - name: push k8s images
   shell: docker tag {{item}} {{registry_ip_address}}:5000/k8simage/{{item}}
   with_items:
-    - "pause:3.1"
-    - "kube-proxy:v1.15.3"
-    - "kube-apiserver:v1.15.3"
-    - "kube-scheduler:v1.15.3"
-    - "kube-controller-manager:v1.15.3" 
-    - "coredns:1.3.1"
-    - "etcd:3.3.10"
+    - "pause:3.2"
+    - "kube-proxy:{{kubernetesVersion}}"
+    - "kube-apiserver:{{kubernetesVersion}}"
+    - "kube-scheduler:{{kubernetesVersion}}"
+    - "kube-controller-manager:{{kubernetesVersion}}" 
+    - "coredns:1.6.7"
+    - "etcd:3.4.3-0"
     - "flannel:v0.11.0-amd64"
+    - "haproxy:2.1.0-alpine"
+    - "osixia/keepalived:2.0.19"
 
 - name: push image to registry
   shell: docker push {{registry_ip_address}}:5000/k8simage/{{item}}
   with_items:
-    - "pause:3.1"
-    - "kube-proxy:v1.15.3"
-    - "kube-apiserver:v1.15.3"
-    - "kube-scheduler:v1.15.3"
-    - "kube-controller-manager:v1.15.3"
-    - "coredns:1.3.1"
-    - "etcd:3.3.10"
+    - "pause:3.2"
+    - "kube-proxy:{{kubernetesVersion}}"
+    - "kube-apiserver:{{kubernetesVersion}}"
+    - "kube-scheduler:{{kubernetesVersion}}"
+    - "kube-controller-manager:{{kubernetesVersion}}"
+    - "coredns:1.6.7"
+    - "etcd:3.4.3-0"
     - "flannel:v0.11.0-amd64"
+    - "haproxy:2.1.0-alpine"
+    - "osixia/keepalived:2.0.19"
+
+- block:
+  - name: copy calico image to localion
+    copy: src={{role_path}}/../../pre-env/images/{{item}} dest={{docker_image_dir}}
+    with_items:
+      - "calico-image.tar"
+  - name: load calico image
+    shell: docker load -i {{docker_image_dir}}/{{item}}
+    with_items:
+      - "calico-image.tar"
+  - name: push calico images
+    shell: docker tag {{item}} {{registry_ip_address}}:5000/k8simage/{{item}}
+    with_items:
+      - "calico/kube-controllers:v3.15.1"
+      - "calico/cni:v3.15.1"
+      - "calico/pod2daemon-flexvol:v3.15.1"
+      - "calico/node:v3.15.1"
+  - name: push image to registry
+    shell: docker push {{registry_ip_address}}:5000/k8simage/{{item}}
+    with_items:
+      - "calico/kube-controllers:v3.15.1"
+      - "calico/cni:v3.15.1"
+      - "calico/pod2daemon-flexvol:v3.15.1"
+      - "calico/node:v3.15.1"
+  when: (k8s_network)=='calico'
+
+
+
 #  shell: /var/lib/sh/run.sh
 #  shell: {{shfile_dir}}{{tmp}}{{registry_sh}} {{registy_ip_address}}
 #  cmd: {{shfile_dir}}

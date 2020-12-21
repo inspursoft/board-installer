@@ -1,24 +1,34 @@
 ---
+
+- name: create prometheus dir
+  file: path={{nfs_dir}}/prometheus state=directory mode=755
+
 - name: copy systemd files to master
   template: src={{role_path}}/templates/{{item}} dest=/var/lib/yaml/
   with_items:
     - "tiller.yaml"
     - "tiller-service.yaml"
-    - "snap.yaml"
     - "fluentd.yaml"
     - "board-clusterrolebinding.yaml"
     - "cadvisor.yaml"
+    - "prometheus.yaml"
+    - "prometheus2.yaml"
+  when: (master_ip_address) in ansible_all_ipv4_addresses
  
 - name: copy init file
   copy: src={{role_path}}/files/init.sh dest=/var/lib/yaml/init.sh mode=755
+  when: ansible_default_ipv4.address == (master_ip_address)
 
 - name: kubectl create -f tiller
   shell: kubectl create -f /var/lib/yaml/{{item}}
   with_items:
     - "tiller.yaml"
     - "tiller-service.yaml"
-    - "snap.yaml"
     - "fluentd.yaml"
     - "board-clusterrolebinding.yaml"
     - "cadvisor.yaml"
+    - "prometheus.yaml"
+    - "prometheus2.yaml"
+  when: (master_ip_address) in ansible_all_ipv4_addresses
+
     

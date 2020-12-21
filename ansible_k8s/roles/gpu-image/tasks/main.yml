@@ -1,0 +1,7 @@
+---
+- name: copy gpu image
+  copy: src={{role_path}}/../../pre-env/images/nvidia.tar.gz dest=/var/lib/k8s/images
+
+- name: load image
+  shell: docker load -i /var/lib/k8s/images/nvidia.tar.gz
+

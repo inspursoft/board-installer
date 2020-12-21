@@ -3,4 +3,7 @@
   roles:
     - reset_k8s
     - uninstall
+- hosts: masters
+  roles:
+    - delnode
 

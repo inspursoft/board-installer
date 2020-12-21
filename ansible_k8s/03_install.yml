@@ -1,0 +1,16 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+
+
+- hosts: masters,nodes
+  roles:
+    - {role: docker}
+    - {role: load-k8s-images-master}
+    - {role: k8s}
+    - {role: nfs-client}
+    - {role: node}
+    - {role: istio.node, tags: istio}
+

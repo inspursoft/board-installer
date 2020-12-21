@@ -1,0 +1,15 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+
+- hosts: masters
+  roles:
+    - {role: cordon}
+
+- hosts: board
+  roles:
+    - {role: docker}
+    - {role: board, tags: board}
+    - {role: docker-compose, tags: board}

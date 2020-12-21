@@ -1,0 +1,7 @@
+---
+- hosts: masters
+  roles:
+    - uninstall_cloudcore
+- hosts: edges
+  roles: 
+    - uninstall_edgecore

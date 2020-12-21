@@ -1,0 +1,14 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+
+- hosts: nfs-server
+  roles:
+    - {role: nfs-server}
+    - {role: nfs-client}
+- hosts: nodes,board,registry,nfs-server
+  roles:
+    - {role: ntpd-client}
+

@@ -1,0 +1,6 @@
+---
+- name: restart cloud core
+  service: name=cloudcore state=stopped
+
+- name: restart cloud core
+  service: name=cloudcore state=started

@@ -1,0 +1,16 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+
+- hosts: masters
+  roles:
+    - {role: multi_master_commen,  when: groups.masters|length > 1}
+    - {role: ntpd-server}
+    - {role: master}
+    - {role: helm}
+    - {role: kubectlCMD}
+    - {role: fetch_ca}
+
+   

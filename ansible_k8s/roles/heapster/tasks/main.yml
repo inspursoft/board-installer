@@ -10,3 +10,4 @@
   with_items:
     - "metrics-server.yaml"
     - "apiservice.yaml"
+  when: ansible_default_ipv4.address == (master_ip_address)

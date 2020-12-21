@@ -30,7 +30,7 @@ networking:
   serviceSubnet: "10.96.0.0/12"
   podSubnet: "10.253.0.0/16"        # 修改为目标网络插件的地址
   dnsDomain: "cluster.local" 
-kubernetesVersion: "v1.15.3"
+kubernetesVersion: "{{kubernetesVersion}}"
 apiServer:
   extraArgs:
     authorization-mode: "Node,RBAC"

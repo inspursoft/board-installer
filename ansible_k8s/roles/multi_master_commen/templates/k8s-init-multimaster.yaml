@@ -1,0 +1,13 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: {{kubernetesVersion}}
+controlPlaneEndpoint: "{{virt_ip}}:8443"                    # master 负载平衡 ip，就是上面的浮动 ip + haproxy 的端口
+apiServer:
+  extraArgs:
+    authorization-mode: "Node,RBAC"
+  timeoutForControlPlane: 4m0s
+  certSANs:
+  - "{{virt_ip}}"             # 负载平衡 IP
+networking:
+  podSubnet: "10.253.0.0/16"        # 修改为目标网络插件的地址
+imageRepository: "{{registry_ip_address}}:5000/k8simage"      # 安装镜像仓库的地址

@@ -164,8 +164,22 @@ spec:
                       - amd64
       hostNetwork: true
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+      - key: node.kubernetes.io/out-of-disk
+        operator: Exists
+      - key: node.kubernetes.io/memory-pressure
+        operator: Exists
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
@@ -258,8 +272,22 @@ spec:
                       - arm64
       hostNetwork: true
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+      - key: node.kubernetes.io/out-of-disk
+        operator: Exists
+      - key: node.kubernetes.io/memory-pressure
+        operator: Exists
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
@@ -352,8 +380,22 @@ spec:
                       - arm
       hostNetwork: true
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+      - key: node.kubernetes.io/out-of-disk
+        operator: Exists
+      - key: node.kubernetes.io/memory-pressure
+        operator: Exists
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
@@ -446,8 +488,22 @@ spec:
                       - ppc64le
       hostNetwork: true
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+      - key: node.kubernetes.io/out-of-disk
+        operator: Exists
+      - key: node.kubernetes.io/memory-pressure
+        operator: Exists
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
@@ -540,8 +596,22 @@ spec:
                       - s390x
       hostNetwork: true
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+      - key: node.kubernetes.io/out-of-disk
+        operator: Exists
+      - key: node.kubernetes.io/memory-pressure
+        operator: Exists
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
       serviceAccountName: flannel
       initContainers:
       - name: install-cni

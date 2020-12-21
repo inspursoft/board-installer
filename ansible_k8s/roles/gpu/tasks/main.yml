@@ -1,0 +1,23 @@
+---
+
+- name: copy gpu rpm package
+  copy: src={{role_path}}/../../pre-env/gpu-rpm dest=/tmp/rpm
+
+- name: copy gpu.repo
+  copy: src={{role_path}}/files/gpu.repo dest=/etc/yum.repos.d
+
+- name: install nvidia-docker2 kmod-nvidia
+  yum: name=kmod-nvidia,nvidia-docker2 state=latest
+
+- name: config daemon.json file
+  template: src={{role_path}}/templates/daemon.json dest=/etc/docker/daemon.json
+
+- name: systemctl daemon-reload 
+  shell: systemctl daemon-reload 
+- name: restart docker
+  service: name=docker enabled=yes state=restarted
+
+- name: restart kubelet
+  service: name=kubelet enabled=yes state=restarted
+
+

@@ -1,0 +1,10 @@
+---
+- name: copy nvidia files to master
+  template: src={{role_path}}/templates/{{item}} dest=/var/lib/yaml/
+  with_items:
+    - "nvidia.yaml"
+
+- name: deploy nvidia
+  shell: kubectl apply -f /var/lib/yaml/nvidia.yaml
+
+

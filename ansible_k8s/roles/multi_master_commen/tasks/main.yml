@@ -1,0 +1,27 @@
+---
+
+- name: create directory /etc/haproxy
+  file: path=/etc/haproxy state=directory mode=755
+
+- name: create directory for save yaml file
+  file: path=/var/lib/yaml state=directory mode=755
+  ignore_errors: yes
+
+- name: create directory /etc/kubernetes/manifests
+  file: path=/etc/kubernetes/manifests state=directory mode=755
+
+- name: copy k8s init file
+  template: src={{role_path}}/templates/k8s-init-multimaster.yaml dest=/var/lib/yaml mode=755
+
+
+
+- name: copy haproxy.cfg file
+  template: src={{role_path}}/templates/kube-haproxy.cfg  dest=/etc/kubernetes/ mode=755
+
+
+- name: copy haproxy.yaml and keepalived.yaml file
+  template: src={{role_path}}/templates/{{item}}  dest=/etc/kubernetes/manifests mode=755
+  with_items:
+    - "kube-haproxy.yaml"
+    - "kube-keepalived.yaml"
+

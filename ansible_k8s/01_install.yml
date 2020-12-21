@@ -1,0 +1,18 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+    - {role: hostname}
+    - {role: repo}
+
+- hosts: masters,nodes,board,registry,registry,nfs-server
+  roles:
+    - {role: common}
+    - {role: chrony}
+
+- hosts: registry
+  roles:
+    - {role: docker}
+    - {role: registry}
+    - {role: push-images}

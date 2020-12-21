@@ -29,7 +29,7 @@
   yum: name=unzip state=latest
 
 - name: copy travis_yml_script.rb to /usr/bin
-  copy: src={{role_path}}/../../pre-env/travis_yml_script.rb dest=/usr/bin mode=755
+  copy: src={{role_path}}/files/travis_yml_script.rb dest=/usr/bin mode=755
 
 - name: copy jdk 
   copy: src={{role_path}}/../../pre-env/jdk1.8.0_181.tar dest=/usr/local

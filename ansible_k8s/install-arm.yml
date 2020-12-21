@@ -1,0 +1,23 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: check}
+    - {role: hostname}
+
+- hosts: masters,nodes,board,registry,registry,nfs-server
+  roles:
+    - {role: common-arm}
+
+- hosts: masters,nodes
+  roles:
+    - {role: k8s-arm}
+    - {role: push-images-arm}
+- hosts: masters
+  roles:
+    - {role: master-arm}
+   
+- hosts: nodes
+  roles:
+    - {role: copy-addnode-cmd}
+

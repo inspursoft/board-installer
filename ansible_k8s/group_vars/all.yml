@@ -38,4 +38,22 @@ heapster_influxip: 10.254.0.100
 heapster_nodeport: 31888
 
 
-credential_private_key: 
+install_package: /tmp/ansible
+
+credential_private_key:
+
+arch: pause-arm64
+
+kubeedge_version: v1.3.1
+kubernetesVersion: v1.18.3
+
+virt_ip: s
+
+
+# select k8s network: flannel or calico
+#k8s_network: flannel
+k8s_network: calico
+
+flag: Ready
+
+gitlab_root_passwd: 123456a?

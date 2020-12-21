@@ -1,0 +1,9 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+- hosts: gitlab
+  roles:
+    - {role: common}
+    - {role: docker}
+    - {role: gitlab}

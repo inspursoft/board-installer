@@ -2,22 +2,28 @@
 - hosts: all
   roles:
     - {role: set_fact}
+    - {role: check}
     - {role: hostname}
-    - {role: repo}
+    - {role: repo, when: ansible_os_family == "RedHat"}
+
+- hosts: masters,nodes,board,registry,registry,nfs-server
+  roles:
     - {role: common}
     - {role: chrony}
+
 - hosts: registry
   roles:
     - {role: docker}
     - {role: registry}
     - {role: push-images}
+    - {role: push-images-2}
 - hosts: nfs-server
   roles:
     - {role: nfs-server}
     - {role: nfs-client}
 - hosts: nodes,board,registry,nfs-server
   roles:
-    - {role: ntpd-client}
+    - {role: ntpd-client, when: ansible_os_family == "RedHat"}
 
 - hosts: masters,nodes
   roles:
@@ -26,23 +32,21 @@
     - {role: k8s}
     - {role: nfs-client}
     - {role: node}
-    - {role: dateLakeimages, tags: juy}
     - {role: istio.node, tags: istio}
 - hosts: masters
   roles:
-    - {role: ntpd-server}
+    - {role: multi_master_commen,  when: groups.masters|length > 1}
+    - {role: ntpd-server, when: ansible_os_family == "RedHat"}
     - {role: master}
     - {role: helm}
     - {role: kubectlCMD}
     - {role: fetch_ca}
+    - {role: creat-addnode-cmd}
 
    
 - hosts: nodes
   roles:
     - {role: copy-addnode-cmd}
-- hosts: masters
-  roles:
-    - {role: dateLake, tags: juy}
 
 - hosts: nodes,master
   roles:
@@ -52,7 +56,11 @@
   roles:
     - {role: istio, tags: istio}
     - {role: heapster}
+
+- hosts: masters
+  roles:
     - {role: cordon}
+
 - hosts: board
   roles:
     - {role: docker}
@@ -60,6 +68,21 @@
     - {role: docker-compose, tags: board}
 - hosts: jenkins_node
   roles:
+    - {role: common}
+    - {role: docker}
     - {role: git}
 
+- hosts: masters
+  roles:
+    - {role: kubeedge-cloud, tags: edge}
+    - {role: addtoken, tags: edge}
+- hosts: edges
+  roles:
+   - {role: hostname, tags: edge}
+   - {role: kubeedge-edge, tags: edge}
 
+- hosts: masters
+  roles:
+    - {role: restart-edgecloud, tags: edge}
+    - {role: noschedul_edge, tags: edge}
+    - {role: noschedul}

@@ -1,0 +1,12 @@
+---
+
+- name: stop cloudcore
+  service: name=cloudcore state=stopped
+  ignore_errors: yes
+
+- name: rm /usr/lib/systemd/system/cloudcore.service
+  file: path={{item}} state=absent 
+  with_items:
+    - "/usr/lib/systemd/system/cloudcore.service"
+    - "/etc/kubeedge"
+

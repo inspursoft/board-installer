@@ -4,6 +4,11 @@
 
 - name: install chrony
   yum: name=chrony state=latest
+  when: ansible_os_family == "RedHat"
+
+- name: install chrony debian
+  shell: dpkg -i {{install_package}}/chrony-debian/*.deb
+  when: ansible_os_family == "Debian"
 
 - name: enable chronyd
   service: name=chronyd enabled=yes

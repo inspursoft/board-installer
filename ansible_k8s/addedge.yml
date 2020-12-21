@@ -1,0 +1,20 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+    - {role: hostname}
+    - {role: repo}
+
+- hosts: masters
+  roles:
+    - {role: kubeedge-cloud}
+    - {role: addtoken}
+
+- hosts: edges
+  roles:
+    - kubeedge-edge
+    #- 2k
+    #
+- hosts: masters
+  roles:
+    - {role: noschedul_edge, tags: edge}

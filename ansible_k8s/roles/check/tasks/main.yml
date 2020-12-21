@@ -1,0 +1,26 @@
+---
+- name: stop cloudcore
+  fail: msg="don't install registry on the nodes"
+  when: (registry_ip_address) in (groups['nodes']) or (registry_ip_address) in (groups['edges']) 
+- name: stop cloudcore
+  fail: msg="please config more then 2 masters"
+  when: groups.masters|length == 2
+
+- name: stop cloudcore
+  fail: msg="don't install jenkins node on the nodes"
+  when: (groups['jenkins_node'][0]) in (groups['nodes']) or (groups['jenkins_node'][0]) in (groups['edges'])
+  ignore_errors: yes
+- name: check cpu number
+  fail: msg="cpu number less then 2!!!"
+  when: (ansible_processor_vcpus) < 2
+- name: check memory 64G
+  fail: msg="memory less than 64G" 
+  when: (ansible_memtotal_mb) < 2300
+
+- name: check os version should >=7.4
+  fail: msg="OS version is not correct"
+  when: ansible_distribution_version is version_compare('7.4','<=')
+
+- name: kernel version should >=3.10
+  fail: msg="kernel is not correct"
+  when: ansible_kernel is version_compare('3.10', '<=') 

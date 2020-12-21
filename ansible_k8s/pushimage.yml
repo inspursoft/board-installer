@@ -1,0 +1,8 @@
+---
+- hosts: all
+  roles:
+    - {role: set_fact}
+
+- hosts: registry
+  roles:
+    - {role: push-images-other}

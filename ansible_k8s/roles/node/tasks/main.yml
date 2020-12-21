@@ -12,17 +12,17 @@
   with_items:
     - "tiller2.14.2.tar"
     - "heapster.tar"
-    - "snap-v23.tar"
     - "metric-server.tar"
     - "cadvisor-v0.30.2.tar"
-    - "fluentd-elasticsearch-v2.0.2.tar"
+    - "fluentd_elasticsearch-v2.7.0.tar"
+    - "prometheus.tar"
 - name: load flannel image
   shell: docker load -i /var/lib/k8s/images/{{item}}
   with_items:
     - "tiller2.14.2.tar" 
     - "heapster.tar"
-    - "snap-v23.tar"
     - "metric-server.tar"
     - "cadvisor-v0.30.2.tar"
-    - "fluentd-elasticsearch-v2.0.2.tar"
+    - "fluentd_elasticsearch-v2.7.0.tar"
+    - "prometheus.tar"
 

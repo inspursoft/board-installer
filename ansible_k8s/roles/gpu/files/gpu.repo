@@ -1,0 +1,5 @@
+[gpu]
+name=gpu
+baseurl=file:///tmp/rpm/gpu-rpm
+enabled=1
+gpgcheck=0

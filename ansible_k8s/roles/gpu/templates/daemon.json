@@ -1,0 +1,17 @@
+{
+  "default-runtime": "nvidia",
+  "runtimes": {
+      "nvidia": {
+          "path": "/usr/bin/nvidia-container-runtime",
+          "runtimeArgs": []
+          }
+  },
+  "live-restore": true,
+  "insecure-registries":["0.0.0.0/0"],
+  "registry-mirrors": ["http://hub-mirror.c.163.com"],
+  "graph": "/data/docker",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m"
+  }
+}

@@ -10,6 +10,7 @@
 #. /etc/init.d/functions
 [[ -f /usr/bin/expect ]] || { echo "install expect";yum install expect -y; } #if have not expect will install it 
 [ $? = 0 ] || { echo "failed for install expect package!!";exit; } #failed install
+PUB=/root/.ssh/id_rsa.pub
 PUB=/root/.ssh/id_dsa.pub 
 [[ -f $PUB ]] || { ssh-keygen -t dsa -P "" -f /root/.ssh/id_dsa>/dev/null 2>&1; } 
 

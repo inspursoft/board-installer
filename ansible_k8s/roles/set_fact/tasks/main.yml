@@ -3,6 +3,7 @@
   set_fact: master_ip_address="{{groups['masters'][0]}}"
 - name: Set IP address variables --- etcd_ip_address
   set_fact: etcd_ip_address="{{groups['etcd'][0]}}"
+  ignore_errors: yes
 - name: Set IP address variables --- node_ip_address
   set_fact: node_ip_address={{ hostvars[groups['nodes'][0]]['ansible_default_ipv4']['address'] }}
 - name: Set IP address variables --- board_ip_address
@@ -15,3 +16,6 @@
   set_fact: registry_ip_address={{groups['registry'][0]}}
   ignore_errors: yes
 
+- name: Set master1 hostname
+  set_fact: corn_na={{ hostvars[groups['masters'][0]]['ansible_nodename']}}
+  ignore_errors: yes
