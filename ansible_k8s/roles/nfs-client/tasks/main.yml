@@ -12,6 +12,8 @@
     mode: 755
 - name: debug nsf_server_ip_address
   debug: "var={{ nsf_server_ip_address }}"
+  ignore_errors: yes
 - name: run nfs script
   shell: /var/nfsclient.sh {{ nsf_server_ip_address }}
+  ignore_errors: yes
   

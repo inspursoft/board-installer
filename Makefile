@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 BUILDPATH=$(CURDIR)
-MAKEPATH=$(BUILDPATH)/make
+MAKEPATH=$(BUILDPATH)
 MAKEWORKPATH=$(MAKEPATH)/$(WORKPATH)
 SRCPATH= src
 TOOLSPATH=$(BUILDPATH)/tools
@@ -19,7 +19,7 @@ DOCKERCOMPOSECMD=$(shell which docker-compose)
 DOCKERTAG=$(DOCKERCMD) tag
 
 TARCMD=$(shell which tar)
-PKGNAME=ansible-script
+PKGNAME=ansible-install
 PKGTEMPPATH=ansible_k8s
 GITTAGVERSION=$(shell git describe --tags || echo UNKNOWN)
 VERSIONFILE=VERSION
@@ -30,13 +30,16 @@ else
         VERSIONTAG=dev
 endif
 
-all:
+tar:
 	@echo $(DOCKERCMD)
 	@echo $(DOCKERBUILD)
 	@echo $(DOCKERPULL)
-	@$(DOCKERPULL) registry.access.redhat.com/rhel7/pod-infrastructure
-#	@$(DOCKERPULL) registry:2.6.2
-	@$(DOCKERSAVE) -o ./ansible_k8s/roles/node/files/pod-infrastructure registry.access.redhat.com/rhel7/pod-infrastructure:latest
-	@$(DOCKERSAVE) -o ./ansible_k8s/roles/registry/files/registry registry:latest
-	@curl -L https://github.com/docker/compose/releases/tag/1.20.1/docker-compose-Linux-x86_64  > ./ansible_k8s/roles/master/files/docker-compose
-	@$(TARCMD) -zcvf $(PKGNAME)-offline.tgz $(PKGTEMPPATH)
+	@curl -O "http://repo.inspur.com/artifactory/k8s-deploy-script/pre-env.tar.gz"
+	@$(TARCMD) zxvf pre-env.tar.gz -C ansible_k8s
+	@$(TARCMD) -zcvf $(PKGNAME)-offline-$(VERSIONTAG).tgz $(PKGTEMPPATH)
+image:
+	@echo $(DOCKERCMD)
+	@echo $(DOCKERBUILD)
+	@echo $(MAKEWORKPATH)
+	@$(DOCKERBUILD) -f $(MAKEWORKPATH)/Dockerfile -t ansible_install:$(VERSIONTAG) .
+

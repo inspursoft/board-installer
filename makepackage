@@ -1,0 +1,4 @@
+curl -O "http://repo.inspur.com/artifactory/k8s-deploy-script/pre-env.tar.gz"
+tar zxvf pre-env.tar.gz -C ansible_k8s
+tar zcvf ansible_k8s.tar.gz ansible_k8s
+  

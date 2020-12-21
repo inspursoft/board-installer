@@ -2,19 +2,15 @@
 - name: install docker-ce
   yum: name=docker-ce state=latest
 
-#- name: config
-#  template: src=config dest=/etc/kubernetes/config
-
-
-- name: Enable docker
+- name: start docker
   service: name=docker enabled=yes state=started
 
+- name: config daemon.json file
+  template: src={{role_path}}/templates/daemon.json dest=/etc/docker/daemon.json
 
-#- name: Enable kube-apiserver
-#  service: name=kube-apiserver enabled=yes
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
 
-#- name: Start kube-apiserver
-#  service: name=kube-apiserver state=started
-#  register: started_kube-apiserver
+- name: restart docker
+  service: name=docker enabled=yes state=restarted
 
-  

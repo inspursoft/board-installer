@@ -1,88 +1,55 @@
 ---
 
-- name: create /etc/kubernetes/{manifests,certs}
-  shell: mkdir -p /etc/kubernetes/{manifests,certs}
-  ignore_errors: yes
-- name: create /var/lib/k8s/images
-  shell: mkdir -p /var/lib/k8s/images
-
-- name: create /var/lib/yaml
-  shell: mkdir -p /var/lib/yaml
-
-- name: create  /var/lib/kubelet
-  shell: mkdir -p /var/lib/kubelet
-
-- name: setenforce 
-  shell: setenforce 0
-  ignore_errors: yes
-
-- name: copy images to images
-  copy: src={{role_path}}/../../pre-env/master_images/{{item}} dest=/var/lib/k8s/images
-  with_items:
-    - "kube-apiserver.tar"
-    - "kube-controller-manager.tar"
-    - "kube-scheduler.tar"
-    - "etcd-3.0.17.tar"
-    - "pause-amd64-3.0.tar"
-    
-- name: copy kublet, kubectl to /usr/bin
-  copy: src={{role_path}}/../../pre-env/bin/{{item}} dest=/usr/bin mode=755
-  with_items:
-    - "kubelet"
-    - "kubectl"
-- name: copy config manifests files on master
-  template: src={{role_path}}/templates/{{item}} dest=/etc/kubernetes/manifests mode=755
-  with_items:
-    - "etcd.manifest"
-    - "apiserver.manifest"
-    - "controller-manager.manifest"
-    - "scheduler.manifest"
-- name: copy systemd files to master
-  copy: src={{role_path}}/templates/{{item}} dest=/usr/lib/systemd/system mode=755
-  with_items:
-    - "kubelet.service"
-
-- name: copy systemd files to master
-  template: src={{role_path}}/templates/{{item}} dest=/var/lib/yaml/
-  with_items:
-    - "flannel.yaml"
-    - "kube-proxy.yaml"  
-    - "snap.yaml"
-
-- name: copy startup file
-  copy: src={{role_path}}/../../files/k8s-loadimages.service dest=/usr/lib/systemd/system mode=755
-- name: copy startup script
-  copy: src={{role_path}}/../../files/k8s-loadimages dest=/usr/bin mode=755
-  
-- name: ln -sv /usr/lib/systemd/system/kubelet.service /etc/systemd/system/multi-user.target.wants/kubelet.service
-  shell: ln -sv /usr/lib/systemd/system/kubelet.service /etc/systemd/system/multi-user.target.wants/kubelet.service
-  ignore_errors: yes
-
-- name: systemctl start k8s-loadimages
-  shell: systemctl start k8s-loadimages
-- name: ln -sv /usr/lib/systemd/system/k8s-loadimages.service /etc/systemd/system/multi-user.target.wants/k8s-loadimages.service
-  shell: ln -sv /usr/lib/systemd/system/k8s-loadimages.service /etc/systemd/system/multi-user.target.wants/k8s-loadimages.service
-  ignore_errors: yes
-
-- name: systemctl start kubelet.service
-  shell: systemctl start kubelet.service
-
 - name: copy init file
-  copy: src={{role_path}}/files/init.sh dest=/var/lib/yaml/init.sh mode=755
+  template: src={{role_path}}/templates/chrony_server.conf dest=/etc/chrony.conf mode=755
 
-- name: run init.sh 
-  shell: /var/lib/yaml/init.sh http://{{master_ip_address}}:8080
+- name: create /etc/kubernetes/pki
+  file: path=/etc/kubernetes/pki state=directory mode=755
 
-- name: start flannel.yml
-  shell: kubectl create -f /var/lib/yaml/flannel.yaml
+- name: create directory for save yaml file
+  file: path=/var/lib/yaml state=directory mode=755
+
+- name: copy k8s init file
+  template: src={{role_path}}/templates/k8s-init.yaml dest=/var/lib/yaml mode=755
+
+- name: copy key
+  copy: src={{credential_private_key}}/{{item}} dest=/etc/kubernetes/pki
+  with_items:
+    - "etcd"
+    - "ca.crt"
+    - "ca.key"
+  when: credential_private_key is defined and credential_private_key is not none
+
+- name: systemctl start kubelet && systemctl start kubelet
+  shell: systemctl start kubelet && systemctl enable kubelet
+
+- name: start chronyd
+  service: name=chronyd state=restarted
+- name: start ntpd
+  service: name=ntpd state=restarted
+
+- name: kubeadm init --config k8s-init.yaml
+  shell: kubeadm init --config /var/lib/yaml/k8s-init.yaml
+#  shell: kubeadm init --pod-network-cidr=10.253.0.0/16 --image-repository={{registry_ip_address}}:5000/k8simage
+
+- name: copy kubeletes.sh
+  copy: src={{role_path}}/files/kubeletes.sh dest=/root mode=755
+
+- name: /root/kubeletes.sh
+  shell: /root/kubeletes.sh
+
+- name: copy kube-flannel.yml
+  template: src={{role_path}}/templates/kube-flannel.yml dest=/var/lib/yaml mode=755
+
+- name: run kubectl apply -f /var/lib/yaml/kube-flannel.yml
+  shell: kubectl apply -f /var/lib/yaml/kube-flannel.yml
+
+- name: kubeadm token create --print-join-command 
+  shell: kubeadm token create --print-join-command > /tmp/t.sh
+
+- name: copy image to localion
+  fetch: src=/tmp/t.sh dest=/tmp/ mode=755
+
+- name: kubectl create namespace library
+  shell: kubectl create namespace library
   ignore_errors: yes
-
-- name: create kube-proxy.yaml
-  shell: kubectl create -f /var/lib/yaml/kube-proxy.yaml
-
-- name: run generage snap file
-  shell: kubectl apply -f /var/lib/yaml/snap.yaml  
-
-#- name: copy fluentd file to yaml
- # template: src=fluentd.yaml dest=/var/lib/yaml
-#  shell: kubectl apply -f /var/lib/yaml/fluentd.yaml

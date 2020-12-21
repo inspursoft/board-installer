@@ -1,21 +1,65 @@
 ---
 - hosts: all
   roles:
-    - repo
-    - common
-- hosts: masters
+    - {role: set_fact}
+    - {role: hostname}
+    - {role: repo}
+    - {role: common}
+    - {role: chrony}
+- hosts: registry
   roles:
-    - docker
-    - master
-    - flannel
-    - registry
-- hosts: nodes
-  roles:
-    - docker
-    - node
+    - {role: docker}
+    - {role: registry}
+    - {role: push-images}
 - hosts: nfs-server
   roles:
-    - nfs-server
- #   - docker
-  #  - nfs-client
+    - {role: nfs-server}
+    - {role: nfs-client}
+- hosts: nodes,board,registry,nfs-server
+  roles:
+    - {role: ntpd-client}
+
+- hosts: masters,nodes
+  roles:
+    - {role: docker}
+    - {role: load-k8s-images-master}
+    - {role: k8s}
+    - {role: nfs-client}
+    - {role: node}
+    - {role: dateLakeimages, tags: juy}
+    - {role: istio.node, tags: istio}
+- hosts: masters
+  roles:
+    - {role: ntpd-server}
+    - {role: master}
+    - {role: helm}
+    - {role: kubectlCMD}
+    - {role: fetch_ca}
+
+   
+- hosts: nodes
+  roles:
+    - {role: copy-addnode-cmd}
+- hosts: masters
+  roles:
+    - {role: dateLake, tags: juy}
+
+- hosts: nodes,master
+  roles:
+    - istio.common
+  tags: istio
+- hosts: masters
+  roles:
+    - {role: istio, tags: istio}
+    - {role: heapster}
+    - {role: cordon}
+- hosts: board
+  roles:
+    - {role: docker}
+    - {role: board, tags: board}
+    - {role: docker-compose, tags: board}
+- hosts: jenkins_node
+  roles:
+    - {role: git}
+
 
