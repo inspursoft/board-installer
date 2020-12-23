@@ -10,5 +10,6 @@
 
 - name: kubectl cordon master
   shell: kubectl cordon `hostname --fqdn`
+  ignore_errors: yes
 
 
