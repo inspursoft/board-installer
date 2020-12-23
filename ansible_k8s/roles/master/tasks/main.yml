@@ -87,7 +87,7 @@
 
 - name: join the other masters
   shell: /tmp/join.sh
-  when: ansible_default_ipv4.address != (master_ip_address) and  groups.masters|length > 1
+  when: groups.masters|length > 1 and (master_ip_address) not in ansible_all_ipv4_addresses
 
 - name: run kubectl apply -f /var/lib/yaml/kube-flannel.yml
   shell: kubectl apply -f /var/lib/yaml/kube-flannel.yml
@@ -106,6 +106,6 @@
     shell: kubectl apply -f /var/lib/yaml/calico.yaml
   when: (master_ip_address) in ansible_all_ipv4_addresses and (k8s_network)=='calico'
 
-- name: /root/kubeletes.sh
-  shell: /root/kubeletes.sh
-  when: ansible_default_ipv4.address != (master_ip_address) and  groups.masters|length > 1 
+#- name: /root/kubeletes.sh
+ # shell: /root/kubeletes.sh
+  #when: ansible_default_ipv4.address != (master_ip_address) and  groups.masters|length > 1 
