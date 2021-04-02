@@ -1,5 +1,5 @@
 # 适用环境
-    Centos7.4 mini, Centos7.6 mini
+    Centos7.4 mini, Centos7.6 mini, ubuntu18.04
 # 安装配置
 #### edit file ansible_k/8shosts
      [masters]
@@ -31,10 +31,8 @@
 
 #### install all 
      ansible-playbook -i hosts install.yml
-#### install all except jupy
-     ansible-playbook -i hosts --skip-tags=juy install.yml
-#### install jupy except istio
-     ansible-playbook -i hosts --skip-tags=istio install.yml
+#### install all except kubeedge
+     ansible-playbook -i hosts --skip-tags=edge install.yml
 #### set the k8s 
      ansible-playbook -i hosts resetk8s.yml
 #### unstall all cluster
