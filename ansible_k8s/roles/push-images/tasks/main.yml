@@ -5,12 +5,14 @@
   with_items:
     - "k8s-images-{{kubernetesVersion}}.tar"
     - "multi-master-images.tar"
+    - "flannel-{{flannel_version}}.tar"
 
 - name: load image
   shell: docker load -i {{docker_image_dir}}/{{item}}
   with_items:
     - "k8s-images-{{kubernetesVersion}}.tar"
     - "multi-master-images.tar"
+    - "flannel-{{flannel_version}}.tar"
 
 - name: push k8s images
   shell: docker tag {{item}} {{registry_ip_address}}:5000/k8simage/{{item}}
@@ -20,9 +22,9 @@
     - "kube-apiserver:{{kubernetesVersion}}"
     - "kube-scheduler:{{kubernetesVersion}}"
     - "kube-controller-manager:{{kubernetesVersion}}" 
-    - "coredns:1.6.7"
-    - "etcd:3.4.3-0"
-    - "flannel:v0.11.0-amd64"
+    - "coredns:{{coredns}}"
+    - "etcd:{{etcd_version}}"
+    - "flannel:{{flannel_version}}"
     - "haproxy:2.1.0-alpine"
     - "osixia/keepalived:2.0.19"
 
@@ -34,9 +36,9 @@
     - "kube-apiserver:{{kubernetesVersion}}"
     - "kube-scheduler:{{kubernetesVersion}}"
     - "kube-controller-manager:{{kubernetesVersion}}"
-    - "coredns:1.6.7"
-    - "etcd:3.4.3-0"
-    - "flannel:v0.11.0-amd64"
+    - "coredns:{{coredns}}"
+    - "etcd:{{etcd_version}}"
+    - "flannel:{{flannel_version}}"
     - "haproxy:2.1.0-alpine"
     - "osixia/keepalived:2.0.19"
 

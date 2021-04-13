@@ -45,9 +45,13 @@ credential_private_key:
 arch: pause-arm64
 
 kubeedge_version: v1.3.1
-kubernetesVersion: v1.18.3
+#kubernetesVersion: v1.18.3
+kubernetesVersion: v1.20.5
+coredns: 1.7.0
+etcd_version: 3.4.13-0
+flannel_version: v0.11.0-amd64
 
-virt_ip: s
+virt_ip: 192.168.122.200
 
 
 # select k8s network: flannel or calico
