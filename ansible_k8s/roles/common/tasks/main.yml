@@ -42,7 +42,7 @@
 - name: copy docker deb package
   copy: src={{role_path}}/../../pre-env/{{item}} dest={{install_package}}/
   with_items:
-    - "debian"
+    - "debian-{{kubernetesVersion}}"
     - "chrony-debian"
     - "nfs-debian"
   when: ansible_os_family == "Debian"
