@@ -9,9 +9,9 @@
     - "kube-apiserver:{{kubernetesVersion}}"
     - "kube-scheduler:{{kubernetesVersion}}"
     - "kube-controller-manager:{{kubernetesVersion}}"
-    - "coredns:1.6.7"
-    - "etcd:3.4.3-0"
-    - "flannel:v0.11.0-amd64"
+    - "coredns:{{coredns}}"
+    - "etcd:{{etcd_version}}"
+    - "flannel:{{flannel_version}}"
 #  shell: /var/lib/sh/run.sh
 #  shell: {{shfile_dir}}{{tmp}}{{registry_sh}} {{registy_ip_address}}
 #  cmd: {{shfile_dir}}

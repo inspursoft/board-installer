@@ -4,7 +4,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: install docker and k8s
-  shell: dpkg -i {{install_package}}/debian/*.deb
+  shell: dpkg -i {{install_package}}/debian-{{kubernetesVersion}}/*.deb
   when: ansible_os_family == "Debian"
 
 - name: start docker
